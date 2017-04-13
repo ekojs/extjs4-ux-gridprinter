@@ -240,8 +240,18 @@ Ext.define("Ext.ux.grid.Printer", {
                     '<meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />',
                     '<link href="' + this.stylesheetPath + '" rel="stylesheet" type="text/css" />',
                     '<title>' + title + '</title>',
+                    '<script type="text/javascript">',
+    	        	  'function printOnload() {["{"]}',
+    	                'if (' + this.printAutomatically + ') {["{"]}',
+    	                  'window.print();',
+    	                  'if (' + this.closeAutomaticallyAfterPrint + ') {["{"]}',
+    	                    'window.close();',
+    	                  '{["}"]}',
+    	                '{["}"]}',
+    	              '{["}"]}',
+    	            '</script>',
                   '</head>',
-                  '<body class="' + Ext.baseCSSPrefix + 'ux-grid-printer-body">',
+                  '<body class="' + Ext.baseCSSPrefix + 'ux-grid-printer-body" onload="printOnload();">',
                   '<div class="' + Ext.baseCSSPrefix + 'ux-grid-printer-noprint ' + Ext.baseCSSPrefix + 'ux-grid-printer-links">',
                       '<a class="' + Ext.baseCSSPrefix + 'ux-grid-printer-linkprint" href="javascript:void(0);" onclick="window.print();">' + this.printLinkText + '</a>',
                       '<a class="' + Ext.baseCSSPrefix + 'ux-grid-printer-linkclose" href="javascript:void(0);" onclick="window.close();">' + this.closeLinkText + '</a>',
@@ -516,18 +526,19 @@ Ext.define("Ext.ux.grid.Printer", {
             win.document.write(html);
             win.document.close();
             
-            if (this.printAutomatically){
-                win.print();
-            }
-            
-            //Another way to set the closing of the main
-            if (this.closeAutomaticallyAfterPrint){
-                if(Ext.isIE){
-                    window.close();
-                } else {
-                    win.close();
-                }                
-            }
+            // Not needed.  Auto-printing handled in htmlMarkup XTemplate.
+//            if (this.printAutomatically){
+//                win.print();
+//            }
+//            
+//            //Another way to set the closing of the main
+//            if (this.closeAutomaticallyAfterPrint){
+//                if(Ext.isIE){
+//                    window.close();
+//                } else {
+//                    win.close();
+//                }                
+//            }
         },
 
 //        getFeature : function( grid, featureId ) {
@@ -690,8 +701,10 @@ Ext.define("Ext.ux.grid.Printer", {
                        			         'unselectableAttr' : 'unselectable="on"',
                        			         'value'            : value
                                		   };
-                        	if (column.renderer)
-                        		value = column.renderer.call(this.grid, value, meta, rcd, -1, col - 1, this.grid.store, this.grid.view);
+				if (column.renderer && column.xtype != 'templatecolumn')
+					value = column.renderer.call(this.grid, value, meta, rcd, -1, col - 1, this.grid.store, this.grid.view);
+				else if (column.renderer && column.xtype == 'templatecolumn')
+					value = column.tpl.apply(rcd.data);
 
                         	return this.getHtml(value, meta);
                         },
